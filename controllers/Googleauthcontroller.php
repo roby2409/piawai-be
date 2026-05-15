@@ -90,8 +90,15 @@ class GoogleAuthController
         $stmt->execute([$user['id']]);
         $profile = $stmt->fetch() ?: null;
 
-        if ($profile && $profile['skills']) {
-            $profile['skills'] = json_decode($profile['skills'], true);
+        $services = [];
+        if ($profile) {
+            $stmt = $this->db->prepare("
+                SELECT id, nama, harga_jam, harga_hari, harga_proyek 
+                FROM services 
+                WHERE user_id = ? AND is_active = 1
+            ");
+            $stmt->execute([$user['id']]);
+            $services = $stmt->fetchAll();
         }
 
         Response::success([
@@ -101,6 +108,7 @@ class GoogleAuthController
             'token_expired_at' => $expired,
             'is_new_user'      => !isset($user['existing']),
             'profile'          => $profile,
+            'services'         => $services,
         ], 'Login dengan Google berhasil');
     }
 

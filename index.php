@@ -6,7 +6,7 @@ require_once 'controllers/AuthController.php';
 require_once 'controllers/GoogleAuthController.php';
 require_once 'controllers/ProfileController.php';
 require_once 'controllers/AppConfigController.php';
-
+require_once 'config/app.php';
 // Headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -63,17 +63,47 @@ switch ($resource) {
     // --- PROFILE ---
     case 'profile':
         $controller = new ProfileController($db);
+
+        // GET /profile
         if ($method === 'GET' && $subRoute === '') {
             $user = requireAuth($db);
             $controller->getMyProfile($user);
-        } elseif ($method === 'POST' && $subRoute === '') {
+
+            // POST atau PUT /profile
+        } elseif (in_array($method, ['POST', 'PUT']) && $subRoute === '') {
             $user = requireAuth($db);
             $controller->createOrUpdate($user);
-        } elseif ($method === 'PUT' && $subRoute === '') {
+        } elseif ($method === 'POST' && $subRoute === 'avatar') {
             $user = requireAuth($db);
-            $controller->createOrUpdate($user);
+            $controller->uploadAvatar($user);
+
+            // ── Services ──────────────────────────────────
+            // GET /profile/services
+        } elseif ($method === 'GET' && $subRoute === 'services') {
+            $user = requireAuth($db);
+            $controller->getServices($user);
+
+            // POST /profile/services
+        } elseif ($method === 'POST' && $subRoute === 'services') {
+            $user = requireAuth($db);
+            $controller->addService($user);
+
+            // PUT /profile/services/{id}
+            // DELETE /profile/services/{id}
+        } elseif ($subRoute === 'services' && isset($segments[2]) && is_numeric($segments[2])) {
+            $user      = requireAuth($db);
+            $serviceId = (int)$segments[2];
+
+            if ($method === 'PUT') {
+                $controller->updateService($user, $serviceId);
+            } elseif ($method === 'DELETE') {
+                $controller->deleteService($user, $serviceId);
+            } else {
+                Response::notFound();
+            }
+
+            // GET /profile/{username}
         } elseif ($method === 'GET' && $subRoute !== '') {
-            // Private: GET /profile/{username} — harus login
             requireAuth($db);
             $controller->getByUsername($subRoute);
         } else {
