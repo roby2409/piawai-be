@@ -6,6 +6,7 @@ require_once 'controllers/AuthController.php';
 require_once 'controllers/GoogleAuthController.php';
 require_once 'controllers/ProfileController.php';
 require_once 'controllers/AppConfigController.php';
+require_once 'controllers/ExploreController.php';
 require_once 'config/app.php';
 // Headers
 header('Content-Type: application/json');
@@ -111,6 +112,18 @@ switch ($resource) {
         }
         break;
 
+    case 'explore':
+        $user       = requireAuth($db);
+        $controller = new ExploreController($db, $user['id']);
+
+        if ($method === 'GET' && $subRoute === '') {
+            $controller->search();
+        } elseif ($method === 'GET' && $subRoute === 'suggest') {
+            $controller->suggest();
+        } else {
+            Response::notFound();
+        }
+        break;
     // --- APP CONFIG ---
     case 'app-config':
         $controller = new AppConfigController($db);
