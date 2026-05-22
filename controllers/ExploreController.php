@@ -139,9 +139,6 @@ class ExploreController
                 p.lat,
                 p.lng,
                 GROUP_CONCAT(DISTINCT s.nama ORDER BY s.nama SEPARATOR ', ') AS services,
-                MIN(s.harga_jam)     AS min_harga_jam,
-                MIN(s.harga_hari)    AS min_harga_hari,
-                MIN(s.harga_proyek)  AS min_harga_proyek,
                 ROUND($haversineSelect, 2) AS distance_km
             FROM profiles p
             INNER JOIN services s ON s.user_id = p.user_id
@@ -168,9 +165,6 @@ class ExploreController
         foreach ($workers as &$w) {
             $w['distance_km']   = (float)$w['distance_km'];
             $w['is_available']  = (bool)$w['is_available'];
-            $w['min_harga_jam']    = $w['min_harga_jam']    ? (int)$w['min_harga_jam']    : null;
-            $w['min_harga_hari']   = $w['min_harga_hari']   ? (int)$w['min_harga_hari']   : null;
-            $w['min_harga_proyek'] = $w['min_harga_proyek'] ? (int)$w['min_harga_proyek'] : null;
             // services → array
             $w['services'] = $w['services'] ? explode(', ', $w['services']) : [];
         }

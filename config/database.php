@@ -22,6 +22,10 @@ class Database
                     PDO::ATTR_EMULATE_PREPARES   => true,
                 ]
             );
+
+            // Paksa UTC di PHP runtime dan MySQL session
+            date_default_timezone_set('UTC');
+            $this->conn->exec("SET time_zone = '+00:00'");
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Database connection failed']);

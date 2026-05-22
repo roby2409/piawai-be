@@ -7,7 +7,9 @@ require_once 'controllers/GoogleAuthController.php';
 require_once 'controllers/ProfileController.php';
 require_once 'controllers/AppConfigController.php';
 require_once 'controllers/ExploreController.php';
+require_once 'controllers/UserController.php';
 require_once 'config/app.php';
+
 // Headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -22,16 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Parse URL
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestUri = rtrim($requestUri, '/');
-$method = $_SERVER['REQUEST_METHOD'];
+$method     = $_SERVER['REQUEST_METHOD'];
 
-// Remove base path if needed (e.g., /api)
 $basePath = '/apigoogle';
-$path = str_replace($basePath, '', $requestUri);
+$path     = str_replace($basePath, '', $requestUri);
 
-// Route segments
 $segments = explode('/', trim($path, '/'));
-// segments[0] = 'auth' | 'profile' | 'app-config'
-// segments[1] = sub-route
 
 $resource = $segments[0] ?? '';
 $subRoute = $segments[1] ?? '';
@@ -56,6 +54,12 @@ switch ($resource) {
         } elseif ($method === 'POST' && $subRoute === 'google') {
             $google = new GoogleAuthController($db);
             $google->handle();
+        } elseif ($method === 'POST' && $subRoute === 'forgot-password') {
+            $controller->forgotPassword();
+        } elseif ($method === 'POST' && $subRoute === 'verify-otp') {
+            $controller->verifyOtp();
+        } elseif ($method === 'POST' && $subRoute === 'reset-password') {
+            $controller->resetPassword();
         } else {
             Response::notFound();
         }
@@ -65,32 +69,21 @@ switch ($resource) {
     case 'profile':
         $controller = new ProfileController($db);
 
-        // GET /profile
         if ($method === 'GET' && $subRoute === '') {
             $user = requireAuth($db);
             $controller->getMyProfile($user);
-
-            // POST atau PUT /profile
         } elseif (in_array($method, ['POST', 'PUT']) && $subRoute === '') {
             $user = requireAuth($db);
             $controller->createOrUpdate($user);
         } elseif ($method === 'POST' && $subRoute === 'avatar') {
             $user = requireAuth($db);
             $controller->uploadAvatar($user);
-
-            // ── Services ──────────────────────────────────
-            // GET /profile/services
         } elseif ($method === 'GET' && $subRoute === 'services') {
             $user = requireAuth($db);
             $controller->getServices($user);
-
-            // POST /profile/services
         } elseif ($method === 'POST' && $subRoute === 'services') {
             $user = requireAuth($db);
             $controller->addService($user);
-
-            // PUT /profile/services/{id}
-            // DELETE /profile/services/{id}
         } elseif ($subRoute === 'services' && isset($segments[2]) && is_numeric($segments[2])) {
             $user      = requireAuth($db);
             $serviceId = (int)$segments[2];
@@ -102,8 +95,6 @@ switch ($resource) {
             } else {
                 Response::notFound();
             }
-
-            // GET /profile/{username}
         } elseif ($method === 'GET' && $subRoute !== '') {
             requireAuth($db);
             $controller->getByUsername($subRoute);
@@ -112,6 +103,7 @@ switch ($resource) {
         }
         break;
 
+    // --- EXPLORE ---
     case 'explore':
         $user       = requireAuth($db);
         $controller = new ExploreController($db, $user['id']);
@@ -124,14 +116,35 @@ switch ($resource) {
             Response::notFound();
         }
         break;
+
     // --- APP CONFIG ---
     case 'app-config':
         $controller = new AppConfigController($db);
         if ($method === 'GET') {
+            $user = requireAuth($db);
             $controller->get();
         } elseif ($method === 'PUT') {
             $user = requireAuth($db);
             $controller->update($user);
+        } else {
+            Response::notFound();
+        }
+        break;
+
+    // --- USER ---
+    case 'user':
+        $user       = requireAuth($db);
+        $controller = new UserController($db);
+
+        if ($method === 'GET' && $subRoute === 'me') {
+            // GET /user/me
+            $controller->me($user);
+        } elseif ($method === 'PUT' && $subRoute === 'username') {
+            // PUT /user/username
+            $controller->updateUsername($user);
+        } elseif ($method === 'PUT' && $subRoute === 'password') {
+            // PUT /user/password
+            $controller->updatePassword($user);
         } else {
             Response::notFound();
         }

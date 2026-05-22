@@ -191,30 +191,21 @@ class ProfileController
 
         $nama         = trim($body['nama'] ?? '');
         $deskripsi    = trim($body['deskripsi'] ?? '');
-        $hargaJam     = isset($body['harga_jam'])     ? (int)$body['harga_jam']     : null;
-        $hargaHari    = isset($body['harga_hari'])    ? (int)$body['harga_hari']    : null;
-        $hargaProyek  = isset($body['harga_proyek'])  ? (int)$body['harga_proyek']  : null;
 
         if (!$nama) {
             Response::error('Nama layanan wajib diisi');
         }
 
-        // Minimal satu tarif harus diisi
-        if ($hargaJam === null && $hargaHari === null && $hargaProyek === null) {
-            Response::error('Minimal satu tarif harus diisi (harga_jam, harga_hari, atau harga_proyek)');
-        }
+
 
         $stmt = $this->db->prepare("
-            INSERT INTO services (user_id, nama, deskripsi, harga_jam, harga_hari, harga_proyek)
-            VALUES (:user_id, :nama, :deskripsi, :harga_jam, :harga_hari, :harga_proyek)
+            INSERT INTO services (user_id, nama, deskripsi)
+            VALUES (:user_id, :nama, :deskripsi)
         ");
         $stmt->execute([
             ':user_id'      => $user['id'],
             ':nama'         => $nama,
-            ':deskripsi'    => $deskripsi ?: null,
-            ':harga_jam'    => $hargaJam,
-            ':harga_hari'   => $hargaHari,
-            ':harga_proyek' => $hargaProyek,
+            ':deskripsi'    => $deskripsi ?: null
         ]);
 
         $newId   = (int)$this->db->lastInsertId();
@@ -236,7 +227,7 @@ class ProfileController
 
         $body = $this->getBody();
 
-        $allowedFields = ['nama', 'deskripsi', 'harga_jam', 'harga_hari', 'harga_proyek', 'is_active'];
+        $allowedFields = ['nama', 'deskripsi', 'is_active'];
         $data          = [];
 
         foreach ($allowedFields as $f) {
@@ -295,7 +286,7 @@ class ProfileController
     private function fetchServices(int $userId): array
     {
         $stmt = $this->db->prepare("
-            SELECT id, nama, deskripsi, harga_jam, harga_hari, harga_proyek, is_active
+            SELECT id, nama, deskripsi, is_active
             FROM services
             WHERE user_id = ?
             ORDER BY created_at ASC
@@ -309,9 +300,6 @@ class ProfileController
                 'id'            => (int)$row['id'],
                 'nama'          => $row['nama'],
                 'deskripsi'     => $row['deskripsi'],
-                'harga_jam'     => $row['harga_jam']     !== null ? (int)$row['harga_jam']     : null,
-                'harga_hari'    => $row['harga_hari']    !== null ? (int)$row['harga_hari']    : null,
-                'harga_proyek'  => $row['harga_proyek']  !== null ? (int)$row['harga_proyek']  : null,
                 'is_active'     => (bool)$row['is_active'],
             ];
         }, $rows);
@@ -320,7 +308,7 @@ class ProfileController
     private function fetchServiceById(int $serviceId, int $userId): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT id, nama, deskripsi, harga_jam, harga_hari, harga_proyek, is_active
+            SELECT id, nama, deskripsi, is_active
             FROM services
             WHERE id = ? AND user_id = ?
         ");
@@ -333,9 +321,6 @@ class ProfileController
             'id'           => (int)$row['id'],
             'nama'         => $row['nama'],
             'deskripsi'    => $row['deskripsi'],
-            'harga_jam'    => $row['harga_jam']    !== null ? (int)$row['harga_jam']    : null,
-            'harga_hari'   => $row['harga_hari']   !== null ? (int)$row['harga_hari']   : null,
-            'harga_proyek' => $row['harga_proyek'] !== null ? (int)$row['harga_proyek'] : null,
             'is_active'    => (bool)$row['is_active'],
         ];
     }
