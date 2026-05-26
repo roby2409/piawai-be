@@ -351,7 +351,7 @@
                     <li>Meminta penghapusan akun dan seluruh data terkait</li>
                 </ul>
                 <p style="margin-top:14px;">Untuk menghapus akun, klik link hapus: <a
-                        href="https://radarapp.jokifigma.cloud/delete-account.php"
+                        href="https://radarapp.jokifigma.cloud/delete-account"
                         style="color:var(--primary);font-weight:600;">disini</a>
                 </p>
             </div>

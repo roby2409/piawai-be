@@ -9,6 +9,7 @@ require_once 'controllers/AppConfigController.php';
 require_once 'controllers/ExploreController.php';
 require_once 'controllers/UserController.php';
 require_once 'config/app.php';
+require_once 'helpers/mailer.php';
 
 // Headers
 header('Content-Type: application/json');

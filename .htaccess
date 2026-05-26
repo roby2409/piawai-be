@@ -1,11 +1,6 @@
+Options -Indexes
+
 RewriteEngine On
-
-# Goal 2: semua file .html bisa tanpa ekstensi
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}.html -f
-RewriteRule ^(.+)$ $1.html [L]
-
-# Goal 1: semua file .php bisa tanpa ekstensi
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^(.+)$ $1.php [L]
+RewriteRule ^(.*)$ index.php [QSA,L]

@@ -155,7 +155,12 @@ class AuthController
         $stmt->execute([$otp, $otpExpired, $user['id']]);
 
         // TODO: Kirim OTP via email (SMTP/Mailgun/dll)
-        // $this->sendOtpEmail($email, $otp);
+        try {
+            sendOtpEmail($email, $otp);
+        } catch (Exception $e) {
+            // Tetap lanjut meski email gagal — jangan expose error ke user
+            error_log('Gagal kirim OTP: ' . $e->getMessage());
+        }
 
         Response::success(null, 'Jika email terdaftar, kode OTP akan dikirim');
     }
