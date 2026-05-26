@@ -74,9 +74,9 @@ class ExploreController
         $haversineWhere = "
             (6371 * ACOS(
                 GREATEST(-1, LEAST(1,
-                    COS(RADIANS(:lat)) * COS(RADIANS(p.lat)) *
-                    COS(RADIANS(p.lng) - RADIANS(:lng)) +
-                    SIN(RADIANS(:lat)) * SIN(RADIANS(p.lat))
+                    COS(RADIANS($lat)) * COS(RADIANS(p.lat)) *
+                    COS(RADIANS(p.lng) - RADIANS($lng)) +
+                    SIN(RADIANS($lat)) * SIN(RADIANS(p.lat))
                 ))
             ))
         ";
@@ -90,8 +90,6 @@ class ExploreController
             "p.user_id != :current_user_id",
         ];
         $params = [
-            ':lat'             => $lat,
-            ':lng'             => $lng,
             ':current_user_id' => $this->currentUserId,
         ];
 
@@ -163,10 +161,13 @@ class ExploreController
 
         // ── Format response ──
         foreach ($workers as &$w) {
+            $w['user_id']       = (int)$w['user_id'];
+            $w['age']           = $w['age'] !== null ? (int)$w['age'] : null;
+            $w['lat']           = $w['lat'] !== null ? (float)$w['lat'] : null;
+            $w['lng']           = $w['lng'] !== null ? (float)$w['lng'] : null;
             $w['distance_km']   = (float)$w['distance_km'];
             $w['is_available']  = (bool)$w['is_available'];
-            // services → array
-            $w['services'] = $w['services'] ? explode(', ', $w['services']) : [];
+            $w['services']      = $w['services'] ? explode(', ', $w['services']) : [];
         }
 
         Response::success([

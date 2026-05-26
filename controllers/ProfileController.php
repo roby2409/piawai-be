@@ -53,6 +53,7 @@ class ProfileController
         // Field yang boleh diupdate — skills dihapus
         $allowedFields = [
             'full_name',
+            'username',
             'phone_wa',
             'email_contact',
             'instagram',

@@ -93,7 +93,7 @@ class GoogleAuthController
         $services = [];
         if ($profile) {
             $stmt = $this->db->prepare("
-                SELECT id, nama, harga_jam, harga_hari, harga_proyek 
+                SELECT id, nama
                 FROM services 
                 WHERE user_id = ? AND is_active = 1
             ");

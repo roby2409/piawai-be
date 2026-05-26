@@ -12,7 +12,7 @@ class AuthController
     public function register(): void
     {
         $body = $this->getBody();
-
+        $fullname = trim($body['full_name'] ?? '');
         $username = trim($body['username'] ?? '');
         $email    = trim($body['email'] ?? '');
         $password = $body['password'] ?? '';
@@ -56,14 +56,15 @@ class AuthController
         $userId = (int)$this->db->lastInsertId();
 
         $stmt = $this->db->prepare("
-            INSERT INTO profiles (user_id, username) VALUES (?, ?)
+            INSERT INTO profiles (user_id, username, full_name) VALUES (?, ?, ?)
         ");
-        $stmt->execute([$userId, $username]);
+        $stmt->execute([$userId, $username, $fullname]);
 
         Response::success([
             'user_id'          => $userId,
             'email'            => $email,
             'username'         => $username,
+            'full_name'        => $fullname,
             'token'            => $token,
             'token_expired_at' => $expired,
         ], 'Registrasi berhasil', 201);
@@ -73,7 +74,7 @@ class AuthController
     public function login(): void
     {
         $body     = $this->getBody();
-        $login    = trim($body['login'] ?? '');
+        $login    = trim($body['email_or_username'] ?? '');
         $password = $body['password'] ?? '';
 
         if (!$login || !$password) {
@@ -81,12 +82,15 @@ class AuthController
         }
 
         $stmt = $this->db->prepare("
-            SELECT u.* FROM users u
-            LEFT JOIN profiles p ON p.user_id = u.id
-            WHERE u.email = :login OR p.username = :login
-            LIMIT 1
-        ");
-        $stmt->execute([':login' => $login]);
+    SELECT u.* FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE u.email = :email OR p.username = :username
+    LIMIT 1
+");
+        $stmt->execute([
+            ':email'    => $login,
+            ':username' => $login,
+        ]);
         $user = $stmt->fetch();
 
         if ($user && $user['password'] === null) {
